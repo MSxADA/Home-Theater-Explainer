@@ -23,7 +23,6 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        /* Custom animations */
         @keyframes fade-in-up {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -37,6 +36,9 @@
         }
         .animate-fade-in {
             animation: fade-in 0.5s ease-out forwards;
+        }
+        .knob-transition {
+            transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
     </style>
 </head>
@@ -73,8 +75,9 @@
             textColor: 'text-blue-700',
             freyaConfig: {
               input: 2,
-              mode: 'buffer', // passive, buffer, tube
-              forbiddenMode: 'tube'
+              mode: 'buffer', 
+              forbiddenMode: 'tube',
+              volumeTarget: 'max', // max, zero, 3oclock
             },
             steps: [
               {
@@ -94,9 +97,16 @@
               },
               {
                 device: 'Schiit Freya+ (Preamp)',
-                action: 'Set to Input 2',
-                detail: 'This listens to the Denon. Ensure the light is on the 2nd icon.',
-                warning: 'CRITICAL: Set mode to BUFFER (Middle Light). DO NOT use Tube mode!',
+                action: 'Set Input & Mode',
+                detail: 'Select Input 2. Ensure the Middle Light (Buffer) is on.',
+                warning: 'CRITICAL: DO NOT use Tube mode (Right light). It changes the volume!',
+                showFreyaGuide: true
+              },
+              {
+                device: 'Schiit Freya+ (Volume)',
+                action: 'Set Volume to MAX',
+                detail: 'Since the Denon controls the volume, turn the Schiit knob fully clockwise (100%).',
+                warning: 'Turn all the way up until it stops.',
                 showFreyaGuide: true
               },
               {
@@ -117,7 +127,8 @@
             freyaConfig: {
               input: 2,
               mode: 'buffer',
-              forbiddenMode: 'tube'
+              forbiddenMode: 'tube',
+              volumeTarget: 'max'
             },
             steps: [
               {
@@ -132,9 +143,15 @@
               },
               {
                 device: 'Schiit Freya+ (Preamp)',
-                action: 'Set to Input 2',
-                detail: 'Because the sound comes through the Denon, we use Input 2.',
-                warning: 'Keep in BUFFER mode (Middle Light). No Tubes!',
+                action: 'Set Input & Mode',
+                detail: 'Input 2. Middle Light (Buffer Mode).',
+                warning: 'Keep in BUFFER mode. No Tubes!',
+                showFreyaGuide: true
+              },
+              {
+                device: 'Schiit Freya+ (Volume)',
+                action: 'Set Volume to MAX',
+                detail: 'Turn the Schiit knob fully clockwise (100%). Control actual loudness via your phone or Denon.',
                 showFreyaGuide: true
               },
               {
@@ -154,8 +171,9 @@
             textColor: 'text-purple-700',
             freyaConfig: {
               input: 1,
-              mode: 'any', // user choice
-              forbiddenMode: null
+              mode: 'any', 
+              forbiddenMode: null,
+              volumeTarget: 'zero'
             },
             steps: [
               {
@@ -172,7 +190,14 @@
                 device: 'Schiit Freya+ (Preamp)',
                 action: 'Set to Input 1',
                 detail: 'Input 1 connects directly to the Cambridge.',
-                note: 'You CAN use Tube mode here if you want that warm sound!',
+                note: 'You CAN use Tube mode here (Right Light) for warmer sound!',
+                showFreyaGuide: true
+              },
+              {
+                device: 'Schiit Freya+ (Volume)',
+                action: 'VOLUME CHECK!',
+                detail: 'Before playing music, turn the volume knob all the way down (Counter-Clockwise).',
+                warning: 'Start at ZERO. Turn up slowly to taste.',
                 showFreyaGuide: true
               },
               {
@@ -186,105 +211,163 @@
 
         // --- Components ---
 
+        const VolumeKnob = ({ target }) => {
+            // Rotation calculations: 
+            // 0% (Min) = -135deg (7 o'clock)
+            // 50% (12 oclock) = 0deg
+            // 75% (3 oclock) = 90deg
+            // 100% (Max) = 135deg (5 o'clock)
+            
+            let rotation = -135; // Default zero
+            let label = "ZERO";
+            let color = "bg-gray-700";
+
+            if (target === 'max') {
+                rotation = 135;
+                label = "MAX (100%)";
+                color = "bg-red-500 shadow-red-500/50";
+            } else if (target === '3oclock') {
+                rotation = 90;
+                label = "3 O'CLOCK";
+                color = "bg-orange-500 shadow-orange-500/50";
+            } else {
+                // zero
+                rotation = -135;
+                label = "ZERO (START)";
+                color = "bg-green-600 shadow-green-500/50";
+            }
+
+            return (
+                <div className="flex flex-col items-center justify-center mx-4">
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Volume Knob</span>
+                    <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-gray-200 to-gray-400 shadow-[inset_0_2px_5px_rgba(0,0,0,0.2),0_4px_10px_rgba(0,0,0,0.3)] border border-gray-400 flex items-center justify-center">
+                        {/* The Indicator Dot */}
+                        <div 
+                            className="absolute w-full h-full knob-transition"
+                            style={{ transform: `rotate(${rotation}deg)` }}
+                        >
+                            <div className={`absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full shadow-sm ${target === 'max' ? 'bg-red-500' : 'bg-gray-800'}`}></div>
+                        </div>
+                        {/* Center Cap */}
+                        <div className="w-12 h-12 rounded-full bg-gray-100 shadow-[0_2px_5px_rgba(0,0,0,0.1)] flex items-center justify-center">
+                           <span className="text-[8px] text-gray-400 font-bold">VOL</span>
+                        </div>
+                    </div>
+                    <div className={`mt-2 px-2 py-1 rounded text-[10px] font-bold text-white shadow-lg ${color}`}>
+                        {label}
+                    </div>
+                </div>
+            );
+        };
+
         const FreyaVisualizer = ({ config }) => {
           return (
-            <div className="bg-gray-800 rounded-lg p-4 my-4 shadow-xl border border-gray-600 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-500 to-transparent opacity-50"></div>
+            <div className="bg-gray-900 rounded-xl p-4 my-4 shadow-2xl border border-gray-700 relative overflow-hidden">
+              {/* Metallic sheen overlay */}
+              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
               
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-400 text-xs tracking-widest uppercase font-semibold">Schiit Freya+ Simulator</span>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-gray-400 text-xs tracking-widest uppercase font-semibold">Schiit Freya+ Setup</span>
                 {config.forbiddenMode === 'tube' && (
-                  <span className="text-red-400 text-xs font-bold animate-pulse">NO TUBES ALLOWED</span>
+                  <span className="text-red-400 text-xs font-bold animate-pulse">NO TUBES</span>
                 )}
               </div>
 
               {/* Faceplate representation */}
-              <div className="flex justify-around items-center bg-gray-300 rounded p-4 border-b-4 border-gray-400">
+              <div className="flex justify-between items-center bg-gradient-to-b from-gray-200 to-gray-300 rounded p-4 border-b-4 border-gray-400 shadow-inner">
                 
-                {/* INPUTS */}
-                <div className="flex flex-col items-center gap-2">
-                  <span className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">Input</span>
+                {/* LEFT: MODES */}
+                <div className="flex flex-col items-center gap-2 pr-2">
+                  <span className="text-[9px] text-gray-600 font-bold uppercase tracking-wider">Output</span>
                   <div className="flex gap-3">
-                    {[1, 2, 3, 4, 5].map((num) => (
-                      <div key={num} className="flex flex-col items-center">
-                        <div className={`w-3 h-3 rounded-full mb-1 transition-all duration-500 ${
-                          config.input === num 
-                            ? 'bg-white shadow-[0_0_10px_2px_rgba(255,255,255,0.8)]' 
-                            : 'bg-gray-400'
-                        }`}></div>
-                        <span className="text-[10px] font-bold text-gray-600">{num}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="text-xs font-bold text-indigo-800 mt-1">
-                    Select: {config.input === 1 ? 'Input 1 (Music Direct)' : 'Input 2 (From Denon)'}
-                  </div>
-                </div>
-
-                {/* MODES */}
-                <div className="flex flex-col items-center gap-2 border-l border-gray-400 pl-4">
-                  <span className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">Output Mode</span>
-                  <div className="flex gap-4">
                     
                     {/* Passive */}
                     <div className="flex flex-col items-center">
-                      <div className={`w-3 h-3 rounded-full mb-1 ${
+                      <div className={`w-3 h-3 rounded-full mb-1 transition-all ${
                         config.mode === 'passive' || config.mode === 'any'
-                        ? 'bg-white shadow-[0_0_10px_2px_rgba(255,255,255,0.6)]' 
-                        : 'bg-gray-400'
+                        ? 'bg-white shadow-[0_0_8px_2px_rgba(255,255,255,0.8)]' 
+                        : 'bg-gray-400/50 inner-shadow'
                       }`}></div>
-                      <span className="text-[9px] text-gray-600 font-bold">PASSIVE</span>
+                      <span className="text-[8px] text-gray-600 font-bold">PASSIVE</span>
                     </div>
 
                     {/* Buffer */}
                     <div className="flex flex-col items-center">
-                      <div className={`w-3 h-3 rounded-full mb-1 ${
+                      <div className={`w-3 h-3 rounded-full mb-1 transition-all ${
                         config.mode === 'buffer' || (config.mode === 'any')
-                        ? 'bg-white shadow-[0_0_10px_2px_rgba(255,255,255,0.6)]' 
-                        : 'bg-gray-400'
+                        ? 'bg-white shadow-[0_0_8px_2px_rgba(255,255,255,0.8)]' 
+                        : 'bg-gray-400/50'
                       }`}></div>
-                      <span className="text-[9px] text-gray-600 font-bold">BUFFER</span>
+                      <span className="text-[8px] text-gray-600 font-bold">BUFFER</span>
                     </div>
 
                     {/* Tube */}
                     <div className="flex flex-col items-center relative">
                        {config.forbiddenMode === 'tube' && (
-                         <div className="absolute -top-6 text-red-600 animate-bounce"><AlertTriangle size={16} /></div>
+                         <div className="absolute -top-5 text-red-600 animate-bounce"><AlertTriangle size={12} /></div>
                        )}
-                      <div className={`w-3 h-3 rounded-full mb-1 ${
+                      <div className={`w-3 h-3 rounded-full mb-1 transition-all ${
                         config.mode === 'tube' || (config.mode === 'any')
-                        ? 'bg-orange-200 shadow-[0_0_15px_4px_rgba(255,165,0,0.8)]' 
-                        : 'bg-gray-400'
+                        ? 'bg-orange-200 shadow-[0_0_12px_3px_rgba(255,165,0,0.8)]' 
+                        : 'bg-gray-400/50'
                       }`}></div>
-                      <span className={`text-[9px] font-bold ${config.forbiddenMode === 'tube' ? 'text-red-600' : 'text-gray-600'}`}>TUBE</span>
+                      <span className={`text-[8px] font-bold ${config.forbiddenMode === 'tube' ? 'text-red-600' : 'text-gray-600'}`}>TUBE</span>
                     </div>
 
                   </div>
                 </div>
+
+                {/* CENTER: VOLUME */}
+                <VolumeKnob target={config.volumeTarget} />
+
+                {/* RIGHT: INPUTS */}
+                <div className="flex flex-col items-center gap-2 border-l border-gray-400 pl-4">
+                  <span className="text-[9px] text-gray-600 font-bold uppercase tracking-wider">Input Select</span>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((num) => (
+                      <div key={num} className="flex flex-col items-center">
+                        <div className={`w-2.5 h-2.5 rounded-full mb-1 transition-all duration-300 ${
+                          config.input === num 
+                            ? 'bg-white shadow-[0_0_8px_2px_rgba(255,255,255,0.9)]' 
+                            : 'bg-gray-400/50'
+                        }`}></div>
+                        <span className="text-[8px] font-bold text-gray-600">{num}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
               </div>
               
-              <p className="text-gray-400 text-xs mt-2 text-center italic">
-                {config.input === 2 
-                  ? "When using Input 2 (Denon), tubes add too much gain/distortion. Use Buffer (Middle)." 
-                  : "On Input 1, explore any mode you like!"}
-              </p>
+              {/* Context Hint */}
+              <div className="mt-3 text-center">
+                 {config.volumeTarget === 'max' && (
+                    <p className="text-orange-300 text-xs font-medium">⚠️ Buffer Mode: Volume to MAX (Unity Gain)</p>
+                 )}
+                 {config.volumeTarget === 'zero' && (
+                    <p className="text-green-300 text-xs font-medium">⚠️ Start Volume at ZERO</p>
+                 )}
+                 {config.volumeTarget === '3oclock' && (
+                    <p className="text-orange-300 text-xs font-medium">Tube Mode: Volume to 3 o'clock position</p>
+                 )}
+              </div>
             </div>
           );
         };
 
         const StepCard = ({ step, index, total, onNext, onPrev, freyaConfig }) => {
           return (
-            <div className="flex flex-col h-full">
-              <div className="mb-6 flex items-center justify-between text-gray-500 text-sm font-medium">
+            <div className="flex flex-col h-full animate-fade-in">
+              <div className="mb-4 flex items-center justify-between text-gray-500 text-sm font-medium">
                 <span>Step {index + 1} of {total}</span>
                 <div className="flex gap-1">
                   {Array.from({ length: total }).map((_, i) => (
-                    <div key={i} className={`h-1.5 w-4 rounded-full ${i === index ? 'bg-indigo-600' : 'bg-gray-200'}`} />
+                    <div key={i} className={`h-1.5 w-4 rounded-full transition-all duration-300 ${i === index ? 'bg-indigo-600 w-6' : 'bg-gray-200'}`} />
                   ))}
                 </div>
               </div>
 
-              <div className="flex-1">
+              <div className="flex-1 overflow-y-auto">
                 <h3 className="text-2xl font-bold text-gray-800 mb-2">{step.device}</h3>
                 <div className="text-xl text-indigo-600 font-semibold mb-4">{step.action}</div>
                 
@@ -293,16 +376,16 @@
                 </p>
 
                 {step.warning && (
-                  <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-r">
+                  <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-r shadow-sm">
                     <div className="flex items-start">
                       <AlertTriangle className="text-red-500 w-6 h-6 mr-3 mt-0.5 flex-shrink-0" />
-                      <p className="text-red-800 font-medium">{step.warning}</p>
+                      <p className="text-red-800 font-bold">{step.warning}</p>
                     </div>
                   </div>
                 )}
 
                 {step.note && (
-                  <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded-r">
+                  <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded-r shadow-sm">
                      <div className="flex items-start">
                       <Info className="text-green-600 w-6 h-6 mr-3 mt-0.5 flex-shrink-0" />
                       <p className="text-green-800 font-medium">{step.note}</p>
@@ -313,11 +396,11 @@
                 {step.showFreyaGuide && <FreyaVisualizer config={freyaConfig} />}
               </div>
 
-              <div className="mt-8 flex gap-3">
+              <div className="mt-6 flex gap-3 pt-4 border-t border-gray-100">
                 {index > 0 && (
                   <button 
                     onClick={onPrev}
-                    className="px-6 py-4 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors"
+                    className="px-6 py-4 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95"
                   >
                     <ChevronLeft />
                   </button>
@@ -327,7 +410,7 @@
                   className="flex-1 px-6 py-4 rounded-xl bg-indigo-600 text-white font-bold text-lg shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   {index === total - 1 ? 'All Done!' : 'Next Step'}
-                  {index < total - 1 && <ChevronRight />}
+                  {index < total - 1 && <ChevronRight size={20} />}
                 </button>
               </div>
             </div>
@@ -336,161 +419,42 @@
 
         const ModeSelection = ({ onSelect }) => {
           return (
-            <div className="space-y-4 animate-fade-in-up">
-              <h2 className="text-xl font-semibold text-gray-700 mb-6 text-center">What would you like to do?</h2>
+            <div className="space-y-4 animate-fade-in-up pb-10">
+              <h2 className="text-xl font-semibold text-gray-700 mb-6 text-center">Select Activity</h2>
               
               {Object.values(SCENARIOS).map((scenario) => (
                 <button
                   key={scenario.id}
                   onClick={() => onSelect(scenario)}
-                  className={`w-full p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all text-left group relative overflow-hidden ${scenario.lightColor}`}
+                  className={`w-full p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all text-left group relative overflow-hidden ${scenario.lightColor} active:scale-98`}
                 >
                    <div className={`absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity ${scenario.textColor}`}>
                      {scenario.icon}
                    </div>
                    
                    <div className="flex items-center gap-4 relative z-10">
-                     <div className={`p-3 rounded-full ${scenario.color} text-white shadow-sm`}>
+                     <div className={`p-3 rounded-full ${scenario.color} text-white shadow-md ring-4 ring-white/30`}>
                        {scenario.icon}
                      </div>
                      <div>
                        <h3 className={`font-bold text-lg ${scenario.textColor}`}>{scenario.title}</h3>
-                       <p className="text-sm text-gray-600 mt-1 leading-snug">{scenario.description}</p>
+                       <p className="text-sm text-gray-600 mt-1 leading-snug font-medium opacity-80">{scenario.description}</p>
                      </div>
                    </div>
                 </button>
               ))}
 
-              <div className="mt-8 pt-8 border-t border-gray-100">
+              <div className="mt-8 pt-8 border-t border-gray-200">
                 <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
                   <Info className="w-5 h-5 text-indigo-500" />
                   Quick Tips
                 </h3>
                 <div className="space-y-3">
-                  <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-sm text-gray-600">
-                    <span className="font-bold text-gray-800">Volume Control:</span> When using the TV or "HIFI" mode, use the <strong>Denon remote</strong> for volume. When in "Audiophile" mode, use the <strong>Schiit remote</strong>.
-                  </div>
-                  <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-sm text-gray-600">
-                    <span className="font-bold text-gray-800">No Sound?</span> Check the <strong>Buckeye Amp</strong> (Main Power) and ensure the Schiit is on the correct input (1 or 2).
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        };
-
-        const App = () => {
-          const [activeScenario, setActiveScenario] = useState(null);
-          const [currentStep, setCurrentStep] = useState(0);
-          const [isCompleted, setIsCompleted] = useState(false);
-
-          const handleScenarioSelect = (scenario) => {
-            setActiveScenario(scenario);
-            setCurrentStep(0);
-            setIsCompleted(false);
-          };
-
-          const handleNext = () => {
-            if (currentStep < activeScenario.steps.length - 1) {
-              setCurrentStep(curr => curr + 1);
-            } else {
-              setIsCompleted(true);
-            }
-          };
-
-          const handlePrev = () => {
-            if (currentStep > 0) {
-              setCurrentStep(curr => curr - 1);
-            }
-          };
-
-          const handleHome = () => {
-            setActiveScenario(null);
-            setCurrentStep(0);
-            setIsCompleted(false);
-          };
-
-          return (
-            <div className="min-h-screen bg-gray-50 font-sans text-gray-900 flex justify-center">
-              <div className="w-full max-w-md bg-white min-h-screen shadow-2xl flex flex-col">
-                
-                {/* Header */}
-                <header className="bg-indigo-700 text-white p-6 rounded-b-3xl shadow-lg relative z-10">
-                  <div className="flex justify-between items-center mb-2">
-                    <h1 className="text-2xl font-bold tracking-tight">Audio Control</h1>
-                    {activeScenario && (
-                      <button 
-                        onClick={handleHome}
-                        className="bg-indigo-600 p-2 rounded-full hover:bg-indigo-500 transition-colors"
-                        aria-label="Go Home"
-                      >
-                        <Home size={20} />
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-indigo-100 text-sm opacity-90">
-                    {activeScenario 
-                      ? `Setup Guide: ${activeScenario.title}`
-                      : "Let's get the music playing."}
-                  </p>
-                </header>
-
-                {/* Main Content Area */}
-                <main className="flex-1 p-6 relative overflow-y-auto">
-                  
-                  {!activeScenario && (
-                    <ModeSelection onSelect={handleScenarioSelect} />
-                  )}
-
-                  {activeScenario && !isCompleted && (
-                    <StepCard 
-                      step={activeScenario.steps[currentStep]}
-                      index={currentStep}
-                      total={activeScenario.steps.length}
-                      onNext={handleNext}
-                      onPrev={handlePrev}
-                      freyaConfig={activeScenario.freyaConfig}
-                    />
-                  )}
-
-                  {isCompleted && (
-                    <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in">
-                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                        <CheckCircle className="w-10 h-10 text-green-600" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-gray-800 mb-2">You're all set!</h2>
-                      <p className="text-gray-600 mb-8">
-                        The system is ready for {activeScenario.title.toLowerCase()}. 
-                        <br/>Enjoy!
-                      </p>
-                      
-                      <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 text-left w-full mb-8">
-                        <h4 className="font-bold text-yellow-800 mb-2 flex items-center gap-2">
-                          <Power size={16}/> Shutdown Tip
-                        </h4>
-                        <p className="text-sm text-yellow-700">
-                          When you are done, turn off the <strong>Buckeye Amp first</strong>, then the Schiit, then the rest. This prevents speaker "pops".
-                        </p>
-                      </div>
-
-                      <button 
-                        onClick={handleHome}
-                        className="w-full py-4 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors"
-                      >
-                        Back to Home
-                      </button>
+                  <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-sm text-gray-600 flex gap-3">
+                    <div className="bg-indigo-50 p-2 rounded-lg h-fit text-indigo-600"><Volume2 size={16}/></div>
+                    <div>
+                        <span className="font-bold text-gray-800 block mb-1">Volume Control</span> 
+                        TV/Streaming = Denon Remote. <br/>
+                        Audiophile = Schiit Remote.
                     </div>
-                  )}
-
-                </main>
-              </div>
-            </div>
-          );
-        };
-
-        // Render the App
-        const root = createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+                  </d
