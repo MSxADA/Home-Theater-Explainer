@@ -8,16 +8,9 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Import Map for React and Lucide Icons -->
-    <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@18.2.0",
-        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-        "lucide-react": "https://esm.sh/lucide-react@0.292.0"
-      }
-    }
-    </script>
+    <!-- React & ReactDOM (UMD - Universal Module Definition for stability) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
     <!-- Babel for JSX transformation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -45,22 +38,23 @@
 <body class="bg-gray-50">
     <div id="root"></div>
 
-    <script type="text/babel" data-type="module">
-        import React, { useState } from 'react';
-        import { createRoot } from 'react-dom/client';
-        import { 
-          Tv, 
-          Music, 
-          Headphones, 
-          Power, 
-          AlertTriangle, 
-          CheckCircle, 
-          ChevronRight, 
-          ChevronLeft, 
-          Info, 
-          Volume2,
-          Home 
-        } from 'lucide-react';
+    <script type="text/babel">
+        // --- Setup Globals ---
+        const { useState } = React;
+        const { createRoot } = ReactDOM;
+
+        // --- Icons (Inlined for reliability) ---
+        const IconTv = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>;
+        const IconMusic = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>;
+        const IconHeadphones = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>;
+        const IconPower = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77 0"/></svg>;
+        const IconAlertTriangle = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>;
+        const IconCheckCircle = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+        const IconChevronRight = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m9 18 6-6-6-6"/></svg>;
+        const IconChevronLeft = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m15 18-6-6 6-6"/></svg>;
+        const IconInfo = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>;
+        const IconVolume2 = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>;
+        const IconHome = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
 
         // --- Data & Configuration ---
 
@@ -69,7 +63,7 @@
             id: 'tv',
             title: 'Watch TV / Movies',
             description: 'Use the Shield to watch Netflix, Plex, or YouTube.',
-            icon: <Tv className="w-8 h-8" />,
+            icon: <IconTv className="w-8 h-8" />,
             color: 'bg-blue-600',
             lightColor: 'bg-blue-100',
             textColor: 'text-blue-700',
@@ -120,7 +114,7 @@
             id: 'casual',
             title: 'Casual Streaming',
             description: 'Stream Spotify/Tidal via the Denon for background music.',
-            icon: <Music className="w-8 h-8" />,
+            icon: <IconMusic className="w-8 h-8" />,
             color: 'bg-teal-600',
             lightColor: 'bg-teal-100',
             textColor: 'text-teal-700',
@@ -165,7 +159,7 @@
             id: 'audiophile',
             title: 'Audiophile Listening',
             description: 'Pure 2-Channel direct from Cambridge. No TV/Denon involved.',
-            icon: <Headphones className="w-8 h-8" />,
+            icon: <IconHeadphones className="w-8 h-8" />,
             color: 'bg-purple-600',
             lightColor: 'bg-purple-100',
             textColor: 'text-purple-700',
@@ -304,7 +298,7 @@
                     {/* Tube */}
                     <div className="flex flex-col items-center relative">
                        {config.forbiddenMode === 'tube' && (
-                         <div className="absolute -top-5 text-red-600 animate-bounce"><AlertTriangle size={12} /></div>
+                         <div className="absolute -top-5 text-red-600 animate-bounce"><IconAlertTriangle size={12} /></div>
                        )}
                       <div className={`w-3 h-3 rounded-full mb-1 transition-all ${
                         config.mode === 'tube' || (config.mode === 'any')
@@ -378,7 +372,7 @@
                 {step.warning && (
                   <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-r shadow-sm">
                     <div className="flex items-start">
-                      <AlertTriangle className="text-red-500 w-6 h-6 mr-3 mt-0.5 flex-shrink-0" />
+                      <IconAlertTriangle className="text-red-500 w-6 h-6 mr-3 mt-0.5 flex-shrink-0" />
                       <p className="text-red-800 font-bold">{step.warning}</p>
                     </div>
                   </div>
@@ -387,7 +381,7 @@
                 {step.note && (
                   <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded-r shadow-sm">
                      <div className="flex items-start">
-                      <Info className="text-green-600 w-6 h-6 mr-3 mt-0.5 flex-shrink-0" />
+                      <IconInfo className="text-green-600 w-6 h-6 mr-3 mt-0.5 flex-shrink-0" />
                       <p className="text-green-800 font-medium">{step.note}</p>
                     </div>
                   </div>
@@ -402,7 +396,7 @@
                     onClick={onPrev}
                     className="px-6 py-4 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95"
                   >
-                    <ChevronLeft />
+                    <IconChevronLeft />
                   </button>
                 )}
                 <button 
@@ -410,7 +404,7 @@
                   className="flex-1 px-6 py-4 rounded-xl bg-indigo-600 text-white font-bold text-lg shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   {index === total - 1 ? 'All Done!' : 'Next Step'}
-                  {index < total - 1 && <ChevronRight size={20} />}
+                  {index < total - 1 && <IconChevronRight size={20} />}
                 </button>
               </div>
             </div>
@@ -446,15 +440,142 @@
 
               <div className="mt-8 pt-8 border-t border-gray-200">
                 <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <Info className="w-5 h-5 text-indigo-500" />
+                  <IconInfo className="w-5 h-5 text-indigo-500" />
                   Quick Tips
                 </h3>
                 <div className="space-y-3">
                   <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-sm text-gray-600 flex gap-3">
-                    <div className="bg-indigo-50 p-2 rounded-lg h-fit text-indigo-600"><Volume2 size={16}/></div>
+                    <div className="bg-indigo-50 p-2 rounded-lg h-fit text-indigo-600"><IconVolume2 size={16}/></div>
                     <div>
                         <span className="font-bold text-gray-800 block mb-1">Volume Control</span> 
                         TV/Streaming = Denon Remote. <br/>
                         Audiophile = Schiit Remote.
                     </div>
-                  </d
+                  </div>
+                  <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-sm text-gray-600 flex gap-3">
+                    <div className="bg-red-50 p-2 rounded-lg h-fit text-red-600"><IconPower size={16}/></div>
+                    <div>
+                        <span className="font-bold text-gray-800 block mb-1">Shutdown Order</span> 
+                        Always turn off the <strong>Buckeye Amp FIRST</strong> to avoid speaker pops.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        const App = () => {
+          const [activeScenario, setActiveScenario] = useState(null);
+          const [currentStep, setCurrentStep] = useState(0);
+          const [isCompleted, setIsCompleted] = useState(false);
+
+          const handleScenarioSelect = (scenario) => {
+            setActiveScenario(scenario);
+            setCurrentStep(0);
+            setIsCompleted(false);
+          };
+
+          const handleNext = () => {
+            if (currentStep < activeScenario.steps.length - 1) {
+              setCurrentStep(curr => curr + 1);
+            } else {
+              setIsCompleted(true);
+            }
+          };
+
+          const handlePrev = () => {
+            if (currentStep > 0) {
+              setCurrentStep(curr => curr - 1);
+            }
+          };
+
+          const handleHome = () => {
+            setActiveScenario(null);
+            setCurrentStep(0);
+            setIsCompleted(false);
+          };
+
+          return (
+            <div className="min-h-screen bg-gray-50 font-sans text-gray-900 flex justify-center">
+              <div className="w-full max-w-md bg-white min-h-screen shadow-2xl flex flex-col">
+                
+                {/* Header */}
+                <header className="bg-indigo-800 text-white p-6 rounded-b-[2rem] shadow-xl relative z-10">
+                  <div className="flex justify-between items-center mb-2">
+                    <h1 className="text-2xl font-bold tracking-tight">Audio Control</h1>
+                    {activeScenario && (
+                      <button 
+                        onClick={handleHome}
+                        className="bg-indigo-700/50 backdrop-blur-sm p-2 rounded-full hover:bg-indigo-600 transition-colors border border-indigo-500/30"
+                        aria-label="Go Home"
+                      >
+                        <IconHome size={20} />
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-indigo-200 text-sm font-medium">
+                    {activeScenario 
+                      ? `Setup Guide: ${activeScenario.title}`
+                      : "Let's get the music playing."}
+                  </p>
+                </header>
+
+                {/* Main Content Area */}
+                <main className="flex-1 p-6 relative flex flex-col">
+                  
+                  {!activeScenario && (
+                    <ModeSelection onSelect={handleScenarioSelect} />
+                  )}
+
+                  {activeScenario && !isCompleted && (
+                    <StepCard 
+                      step={activeScenario.steps[currentStep]}
+                      index={currentStep}
+                      total={activeScenario.steps.length}
+                      onNext={handleNext}
+                      onPrev={handlePrev}
+                      freyaConfig={activeScenario.freyaConfig}
+                    />
+                  )}
+
+                  {isCompleted && (
+                    <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in my-auto">
+                      <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 shadow-green-200 shadow-xl">
+                        <IconCheckCircle className="w-12 h-12 text-green-600" />
+                      </div>
+                      <h2 className="text-3xl font-bold text-gray-800 mb-2">You're all set!</h2>
+                      <p className="text-gray-600 mb-10 text-lg">
+                        System ready for<br/>
+                        <span className="font-bold text-indigo-600">{activeScenario.title}</span>
+                      </p>
+                      
+                      <div className="bg-amber-50 p-5 rounded-2xl border border-amber-200 text-left w-full mb-8 shadow-sm">
+                        <h4 className="font-bold text-amber-800 mb-2 flex items-center gap-2 text-lg">
+                          <IconPower size={20}/> Powering Down?
+                        </h4>
+                        <p className="text-amber-900/80 leading-relaxed">
+                          Remember: Turn off the <strong>Buckeye Amp first</strong>. Then turn off everything else.
+                        </p>
+                      </div>
+
+                      <button 
+                        onClick={handleHome}
+                        className="w-full py-4 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-colors text-lg"
+                      >
+                        Back to Home
+                      </button>
+                    </div>
+                  )}
+
+                </main>
+              </div>
+            </div>
+          );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
